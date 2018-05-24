@@ -8,9 +8,17 @@ var markers = []
  * Fetch neighborhoods and cuisines as soon as the page is loaded.
  */
 document.addEventListener('DOMContentLoaded', (event) => {
+  initLocalStorage();
   fetchNeighborhoods();
   fetchCuisines();
 });
+
+/**
+ * Initiate IndexedDB 
+ */
+initLocalStorage = () => {
+  DBHelper.setupIndexedDB();
+}
 
 /**
  * Fetch all neighborhoods and set their HTML.
