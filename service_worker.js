@@ -19,6 +19,7 @@ var cache_urls = [
   'js/dbhelper.js',
   'js/main.js',
   'js/restaurant_info.js',
+  'js/sw_check.js',
   'index.html',
   'restaurant.html',
   '/.'
