@@ -3,32 +3,87 @@
  */
 class DBHelper {
 
+  static setupIndexedDB() {
+    // Open (or create) the database
+    const db = window.indexedDB.open('restaurants-db', 1);
+
+    // Create the schema
+    db.onupgradeneeded = function() {
+      const res = db.result;
+      // const restaurantsStore = 
+      res.createObjectStore('restaurants', {keyPath: 'id'});
+      // const index = restaurantsStore.createIndex('restaurants-index', ['name.last', 'name.first']);
+    };
+  }
+
+  /**
+   * IndexedDB Open.
+   */
+  static get database() {
+    return window.indexedDB.open('restaurants-db', 1);
+  }
+
+  /**
+   * Update IndexedDB
+   */
+  static updateIndexedDb(key, value) {
+    const dbRequest = DBHelper.database;
+    dbRequest.onsuccess = function() {
+      const db = dbRequest.result;
+      const transaction = db.transaction('restaurants','readwrite');
+      const store = transaction.objectStore('restaurants');
+      value.forEach(v => store.add(v));
+    }
+    dbRequest.onerror = function(event) {
+      // Handle errors!
+      console.error('We couldn\'t fetch anything!');
+    };    
+  }
+
+  /**
+   * Fetch from IndexedDB
+   */
+  static readFromIndexedDb(callback) {
+    const dbRequest = DBHelper.database; // OpenDB
+    dbRequest.onsuccess = function() {
+      const db = dbRequest.result;
+      const transaction = db.transaction(['restaurants']);
+      const store = transaction.objectStore('restaurants');
+      const restaurantsRequest = store.getAll();
+
+      restaurantsRequest.onsuccess = function() {
+        callback(restaurantsRequest.result); // callback using data from IDB
+      }
+    }
+    dbRequest.onerror = function(event) {
+      // Handle errors!
+      console.error('We couldn\'t fetch anything!');
+    };
+  }
+
   /**
    * Database URL.
    * Change this to restaurants.json file location on your server.
    */
   static get DATABASE_URL() {
-    const port = 8000 // Change this to your server port
-    return `http://localhost:${port}/data/restaurants.json`;
+    const port = 1337 // Change this to your server port
+    return `http://localhost:${port}/restaurants`;
   }
 
   /**
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
-    let xhr = new XMLHttpRequest();
-    xhr.open('GET', DBHelper.DATABASE_URL);
-    xhr.onload = () => {
-      if (xhr.status === 200) { // Got a success response from server!
-        const json = JSON.parse(xhr.responseText);
-        const restaurants = json.restaurants;
-        callback(null, restaurants);
-      } else { // Oops!. Got an error from server.
-        const error = (`Request failed. Returned status of ${xhr.status}`);
-        callback(error, null);
-      }
-    };
-    xhr.send();
+    fetch(DBHelper.DATABASE_URL)
+    .then(response => response.json())
+    .then(restaurants => {
+      DBHelper.updateIndexedDb('restaurants', restaurants);
+      callback(null, restaurants);
+    })
+    .catch(err => {
+      console.error('Oops!. Got an error from server. Fetching saved data only.')
+      DBHelper.readFromIndexedDb((res) => callback(null, res));
+    });
   }
 
   /**
@@ -150,7 +205,7 @@ class DBHelper {
    * Restaurant image URL.
    */
   static imageUrlForRestaurant(restaurant) {
-    return (`/img/${restaurant.photograph}`);
+    return (restaurant.photograph ? `/img/${restaurant.photograph}.jpg` : `/img/placeholder.jpg`);
   }
 
   /**
