@@ -205,7 +205,24 @@ class DBHelper {
    * Restaurant image URL.
    */
   static imageUrlForRestaurant(restaurant) {
-    return (restaurant.photograph ? `/img/${restaurant.photograph}.jpg` : `/img/placeholder.jpg`);
+    return (restaurant.photograph ? `dist/img/${restaurant.photograph}.jpg` : `/img/placeholder.jpg`);
+  }
+
+  /**
+   * Restaurant image srcset.
+   */
+  static imageSrcsetForRestaurant(restaurant) {
+    const image = restaurant.photograph ? `dist/img/${restaurant.photograph}` : `dist/img/placeholder`;
+
+    return `    
+    <source media="(min-width: 800px)" srcset="${image}.webp, ${image}.webp 2x" type="image/webp" />
+    <source media="(min-width: 450px)" srcset="${image}-400px.webp" type="image/webp" />
+    
+    <source media="(min-width: 800px)" srcset="${image}.jpg, ${image}.jpg 2x" />
+    <source media="(min-width: 450px)" srcset="${image}-400px.jpg" />
+
+    <img src="${image}.jpg" class="restaurant-img" alt="restaurant image">
+    `;
   }
 
   /**

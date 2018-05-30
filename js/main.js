@@ -11,6 +11,23 @@ document.addEventListener('DOMContentLoaded', (event) => {
   initLocalStorage();
   fetchNeighborhoods();
   fetchCuisines();
+
+  // Intersect all the things!
+  new IntersectionObserver(entries => {/* … */}, {
+    // The root to use for intersection.
+    // If not provided, use the top-level document’s viewport.
+    root: null,
+    // Same as margin, can be 1, 2, 3 or 4 components, possibly negative lengths.
+    // If an explicit root element is specified, components may be percentages of the
+    // root element size.  If no explicit root element is specified, using a percentage
+    // is an error.
+    rootMargin: "0px",
+    // Threshold(s) at which to trigger callback, specified as a ratio, or list of
+    // ratios, of (visible area / total area) of the observed element (hence all
+    // entries must be in the range [0, 1]).  Callback will be invoked when the visible
+    // ratio of the observed element crosses a threshold in the list.
+    threshold: [0],
+  });
 });
 
 /**
@@ -146,11 +163,11 @@ fillRestaurantsHTML = (restaurants = self.restaurants) => {
 createRestaurantHTML = (restaurant) => {
   const li = document.createElement('li');
 
-  const image = document.createElement('img');
-  image.className = 'restaurant-img';
-  image.alt = 'restaurant image';
-  image.src = DBHelper.imageUrlForRestaurant(restaurant);
-  li.append(image);
+  const picture = document.createElement('picture');
+  picture.innerHTML = DBHelper.imageSrcsetForRestaurant(restaurant);
+  picture.className = 'restaurant-img';
+
+  li.append(picture);
 
   const name = document.createElement('h2');
   name.innerHTML = restaurant.name;
