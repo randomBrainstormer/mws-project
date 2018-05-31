@@ -1,10 +1,9 @@
-var staticCacheName = 'mws-static-v2';
-var allCaches = [
+const staticCacheName = 'mws-static-v2';
+const allCaches = [
   staticCacheName,
 ];
 
-var cache_urls = [
-  'dist/css/styles.css',
+const cache_urls = [
   'dist/img/1.jpg',
   'dist/img/1-400px.jpg',
   'dist/img/1.webp',
@@ -55,15 +54,17 @@ var cache_urls = [
   'dist/js/sw_check.js',
   'index.html',
   'restaurant.html',
-  '/.'
+  'service_worker.js',
+  'manifest.json',
+  '/.',
 ];
-
 
 self.addEventListener('install', function(event) {
   event.waitUntil(
-    caches.open(staticCacheName).then(function(cache) {
-      return cache.addAll(cache_urls);
-    })
+    caches.open(staticCacheName)
+      .then(function(cache) {
+        return cache.addAll(cache_urls, {mode: 'no-cors'});
+      })
   );
 });
 
@@ -84,6 +85,14 @@ self.addEventListener('activate', function(event) {
 
 self.addEventListener('fetch', function(event) {
   var requestUrl = new URL(event.request.url);
+
+  if (requestUrl.origin === location.origin) {
+    if (requestUrl.pathname === '/restaurant.html') {
+      event.respondWith(caches.match('restaurant.html'));
+      return;
+    }
+  }
+
   event.respondWith(
     caches.match(event.request).then(function(response) {
       return response || fetch(event.request);
