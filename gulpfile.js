@@ -62,5 +62,10 @@ gulp.task('responsiveImg', function () {
     .pipe(gulp.dest('dist/img'));
 });
 
-// gulp.task('images', ['webp', 'resize', 'minimize']);
-gulp.task('default', ['responsiveImg', 'compressJs']);
+gulp.task('watch', function(){
+  gulp.watch('js/*.js', ['compressJs']);
+  gulp.watch('img/*.jpg', ['responsiveImg']);
+});
+
+gulp.task('default', ['responsiveImg', 'compressJs', 'watch']);
+
