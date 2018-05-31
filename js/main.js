@@ -164,6 +164,7 @@ createRestaurantHTML = (restaurant) => {
   const li = document.createElement('li');
 
   const picture = document.createElement('picture');
+  // the alt element is returned within the generated HTML of the <picture> element.
   picture.innerHTML = DBHelper.imageSrcsetForRestaurant(restaurant);
   picture.className = 'restaurant-img';
 
