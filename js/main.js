@@ -42,13 +42,32 @@ document.addEventListener('DOMContentLoaded', (event) => {
   initLocalStorage();
   fetchNeighborhoods();
   fetchCuisines();
+  updateRestaurants();
 });
 
 window.addEventListener('load', (event) => {
+  // start observing the images
   [].slice.call(document.querySelectorAll('picture[data-src]')).forEach(image => {
     observer.observe(image);
   });
 });
+
+const swap_map = () => {    
+  if (document.getElementById('static_map').style.display !== 'none') {        
+    document.getElementById('static_map').style.display = 'none';
+  }
+
+  let loc = {
+    lat: 40.722216,
+    lng: -73.987501
+  };
+  self.map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 12,
+    center: loc,
+    scrollwheel: false
+  });
+  addMarkersToMap();
+}
 
 /**
  * Initiate IndexedDB 
@@ -173,7 +192,11 @@ fillRestaurantsHTML = (restaurants = self.restaurants) => {
   restaurants.forEach(restaurant => {
     ul.append(createRestaurantHTML(restaurant));
   });
-  addMarkersToMap();
+  if (typeof google === 'object' && typeof google.maps === 'object') {
+    addMarkersToMap();
+  } else {
+    fetchImageMap();
+  }
 }
 
 /**
@@ -221,4 +244,16 @@ addMarkersToMap = (restaurants = self.restaurants) => {
     });
     self.markers.push(marker);
   });
+}
+
+/**
+ * Fetch the image version of the map in main page.
+ */
+fetchImageMap = (restaurants = self.restaurants) => {
+  const markers = restaurants.map(restaurant => `&markers=${restaurant.latlng.lat},${restaurant.latlng.lng}`);
+  document.querySelector('#map').innerHTML = `
+  <img id="static_map" onclick="swap_map()" src="https://maps.googleapis.com/maps/api/staticmap?center=40.722216,-73.987501&zoom=12&size=640x640&maptype=roadmap
+  ${markers.join('')}
+  &key=AIzaSyBDWVakzxJSRtpMhMzaX8tt9b2vHc38cpE"></img>
+  `;
 }
