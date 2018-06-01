@@ -211,8 +211,8 @@ class DBHelper {
   /**
    * Restaurant image srcset.
    */
-  static imageSrcsetForRestaurant(restaurant) {
-    const image = restaurant.photograph ? `dist/img/${restaurant.photograph}` : `dist/img/placeholder`;
+  static imageSrcsetForRestaurant(photograph) {
+    const image = photograph && photograph !== 'undefined' && photograph !== 'null' ? `dist/img/${photograph}` : `dist/img/placeholder`;
 
     return `    
     <source media="(min-width: 800px)" srcset="${image}.webp, ${image}.webp 2x" type="image/webp" />

@@ -5,28 +5,48 @@ var map
 var markers = []
 
 /**
+ * Callback for the observer
+ */
+const observerCallback = (entries, observer) => { 
+  entries.forEach(entry => {
+    const lazyImage = entry.target;
+    if (lazyImage.hasAttribute('data-src') && (lazyImage.getBoundingClientRect().top <= window.innerHeight && lazyImage.getBoundingClientRect().bottom >= 0) && getComputedStyle(lazyImage).display !== "none") {
+      const photograph = entry.target.getAttribute('data-src');
+      entry.target.innerHTML = DBHelper.imageSrcsetForRestaurant(photograph);
+      entry.target.removeAttribute('data-src');
+    }
+  });
+};
+
+// Intersect all the things!
+const observer = new IntersectionObserver(observerCallback, {
+  // The root to use for intersection.
+  // If not provided, use the top-level document’s viewport.
+  root: null,
+  // Same as margin, can be 1, 2, 3 or 4 components, possibly negative lengths.
+  // If an explicit root element is specified, components may be percentages of the
+  // root element size.  If no explicit root element is specified, using a percentage
+  // is an error.
+  rootMargin: "0px",
+  // Threshold(s) at which to trigger callback, specified as a ratio, or list of
+  // ratios, of (visible area / total area) of the observed element (hence all
+  // entries must be in the range [0, 1]).  Callback will be invoked when the visible
+  // ratio of the observed element crosses a threshold in the list.
+  threshold: [0],
+});
+
+/**
  * Fetch neighborhoods and cuisines as soon as the page is loaded.
  */
 document.addEventListener('DOMContentLoaded', (event) => {
   initLocalStorage();
   fetchNeighborhoods();
   fetchCuisines();
+});
 
-  // Intersect all the things!
-  new IntersectionObserver(entries => {/* … */}, {
-    // The root to use for intersection.
-    // If not provided, use the top-level document’s viewport.
-    root: null,
-    // Same as margin, can be 1, 2, 3 or 4 components, possibly negative lengths.
-    // If an explicit root element is specified, components may be percentages of the
-    // root element size.  If no explicit root element is specified, using a percentage
-    // is an error.
-    rootMargin: "0px",
-    // Threshold(s) at which to trigger callback, specified as a ratio, or list of
-    // ratios, of (visible area / total area) of the observed element (hence all
-    // entries must be in the range [0, 1]).  Callback will be invoked when the visible
-    // ratio of the observed element crosses a threshold in the list.
-    threshold: [0],
+window.addEventListener('load', (event) => {
+  [].slice.call(document.querySelectorAll('picture[data-src]')).forEach(image => {
+    observer.observe(image);
   });
 });
 
@@ -114,7 +134,6 @@ window.initMap = () => {
 updateRestaurants = () => {
   const cSelect = document.getElementById('cuisines-select');
   const nSelect = document.getElementById('neighborhoods-select');
-
   const cIndex = cSelect.selectedIndex;
   const nIndex = nSelect.selectedIndex;
 
@@ -165,8 +184,8 @@ createRestaurantHTML = (restaurant) => {
 
   const picture = document.createElement('picture');
   // the alt element is returned within the generated HTML of the <picture> element.
-  picture.innerHTML = DBHelper.imageSrcsetForRestaurant(restaurant);
   picture.className = 'restaurant-img';
+  picture.dataset.src = restaurant.photograph;
 
   li.append(picture);
 
