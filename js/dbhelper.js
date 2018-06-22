@@ -12,6 +12,7 @@ class DBHelper {
       const res = db.result;
       // const restaurantsStore = 
       res.createObjectStore('restaurants', {keyPath: 'id'});
+      res.createObjectStore('reviews', {keyPath: 'id'});
       // const index = restaurantsStore.createIndex('restaurants-index', ['name.last', 'name.first']);
     };
   }
@@ -24,9 +25,9 @@ class DBHelper {
   }
 
   /**
-   * Update IndexedDB
+   * Update IndexedDB with restaurants info
    */
-  static updateIndexedDb(key, value) {
+  static updateRestaurantsStorage(key, value) {
     const dbRequest = DBHelper.database;
     dbRequest.onsuccess = function() {
       const db = dbRequest.result;
@@ -67,17 +68,21 @@ class DBHelper {
    */
   static get DATABASE_URL() {
     const port = 1337 // Change this to your server port
-    return `http://localhost:${port}/restaurants`;
+    return `http://localhost:${port}`;
+  }
+
+  static get RESTAURANTS_URL() {
+    return DBHelper.DATABASE_URL + '/restaurants';
   }
 
   /**
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
-    fetch(DBHelper.DATABASE_URL)
+    fetch(DBHelper.RESTAURANTS_URL)
     .then(response => response.json())
     .then(restaurants => {
-      DBHelper.updateIndexedDb('restaurants', restaurants);
+      DBHelper.updateRestaurantsStorage('restaurants', restaurants);
       callback(null, restaurants);
     })
     .catch(err => {
