@@ -339,6 +339,69 @@
   #restaurant-hours td {
     color: #666;
   }
+
+  fieldset.rating {
+    display: inline-block;
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  label.star {
+    float: right;
+    padding: 10px;
+    color: #444;
+    transition: all .2s;
+  } 
+
+  input.star:checked ~ label.star:before {
+    content: '\2605';
+    color: #FD4;
+    transition: all .25s;
+  }
+
+  input.star { display: none; }
+  
+  input.star-min:checked ~ label.star:before {
+    color: #FE7;
+    text-shadow: 0 0 20px #952;
+  }
+
+  input.star-max:checked ~ label.star:before { color: #F62; }
+
+  label.star:before {
+    content: '\2605';
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    margin: 0 60px 0 0;
+  }
+
+  label {
+    display: flex;
+    padding: 0 0.5rem 0 0;
+    align-self: center;
+  }
+  
+  input#name {
+    flex-grow: 4;
+    padding: 0.5rem;
+  }
+
+  textarea {
+    padding: 0.5rem;
+  }
+
+  button[type=submit] {
+    padding: 0.5rem;
+  }
+  .form-row {
+    display: flex;
+    flex-direction: row;
+    padding: 0.5rem 0;
+  }
   
   @media screen and (max-width: 850px) {  
     #breadcrumb {
@@ -473,6 +536,28 @@
     <!-- end restaurant -->
     <!-- Beginning reviews -->
     <section id="reviews-container">
+        <h2>Rate this restaurant</h2>
+        <form id="review-form" action="/set" method="POST">
+          <div class="form-row">
+            <label for="name">Your name</label>
+            <input type="text" id="name" name="name" placeholder="John Smith" />
+          </div>
+          <div class="form-row">
+            <label for="rating">Your rating</label>
+            <fieldset class="rating">
+              <input type="radio" class="star star-min" id="1stars" name="rating" value="1" /><label class="star star-min" for="1stars" title="Very bad - 1 star"></label>
+              <input type="radio" class="star" id="2stars" name="rating" value="2" /><label class="star" for="2stars" title="Bad - 2 stars"></label>
+              <input type="radio" class="star" id="3stars" name="rating" value="3" /><label class="star" for="3stars" title="Acceptable - 3 stars"></label>
+              <input type="radio" class="star" id="4stars" name="rating" value="4" /><label class="star" for="4stars" title="Very good - 4 stars"></label>
+              <input type="radio" class="star star-max" id="5stars" name="rating" value="5" /><label class="star star-max" for="5stars" title="Excellent - 5 stars"></label>
+            </fieldset>
+          </div>
+          <label for="review_text">Your review</label>
+          <textarea name="review" id="review_text" rows="10" placeholder="Write your review here.." ></textarea>
+          <div class="form-row">
+            <button type="submit">Submit</button>
+          </div>
+        </form>
       <ul id="reviews-list"></ul>
     </section>
     <!-- End reviews -->
