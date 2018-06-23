@@ -59,6 +59,8 @@ module.exports.http = {
     //     return next();
     // }
 
+    compress : require('compression')(),
+    cache: 86400
 
   /***************************************************************************
   *                                                                          *

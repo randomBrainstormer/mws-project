@@ -5,6 +5,7 @@
   "description": "a Sails application",
   "keywords": [],
   "dependencies": {
+    "compression": "^1.7.2",
     "idb": "^2.1.2",
     "imagemin": "^5.3.1",
     "imagemin-webp": "^4.1.0",
