@@ -8,6 +8,11 @@
     <meta name="theme-color" content="#252831"/>
     <link rel="manifest" href="/manifest.json">
     <link async rel="stylesheet" src="//normalize-css.googlecode.com/svn/trunk/normalize.css" />
+    <link rel="prefetch" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700">
+    <link rel="dns-prefetch" href="https://maps.googleapis.com">
+    <link rel="dns-prefetch" href="https://maps.gstatic.com">
+    <link rel="dns-prefetch" href="http://localhost:1337">
+    
     <style>
       
   body,td,th,p{
@@ -360,7 +365,10 @@
     transition: all .25s;
   }
 
-  input.star { display: none; }
+  input.star { 
+    opacity:0; 
+    width: 1px;
+  }
   
   input.star-min:checked ~ label.star:before {
     color: #FE7;
@@ -376,7 +384,9 @@
   form {
     display: flex;
     flex-direction: column;
-    margin: 0 60px 0 0;
+    margin: 0 60px 35px 0;
+    padding: 10px;
+    background: #cecece;
   }
 
   label {
@@ -403,6 +413,14 @@
     padding: 0.5rem 0;
   }
   
+  #favoritesBtn {
+    width: 90%;
+    padding: 0.5rem;
+    margin: 0.5rem 0;
+    background: #f58500;
+    color: white;
+  }
+
   @media screen and (max-width: 850px) {  
     #breadcrumb {
       width: 100%;
@@ -532,32 +550,37 @@
       <p id="restaurant-cuisine"></p>
       <p id="restaurant-address"></p>
       <table id="restaurant-hours"></table>
+      <div class="favorite">
+        <button id="favoritesBtn" data-faved="false">Add to your faves list</button>
+      </div>
     </section>
     <!-- end restaurant -->
+
     <!-- Beginning reviews -->
     <section id="reviews-container">
         <h2>Rate this restaurant</h2>
         <form id="review-form" action="/set" method="POST">
           <div class="form-row">
             <label for="name">Your name</label>
-            <input type="text" id="name" name="name" placeholder="John Smith" />
+            <input type="text" id="name" name="name" placeholder="Name Lastname..." required/>
           </div>
           <div class="form-row">
             <label for="rating">Your rating</label>
             <fieldset class="rating">
-              <input type="radio" class="star star-min" id="1stars" name="rating" value="1" /><label class="star star-min" for="1stars" title="Very bad - 1 star"></label>
+              <input type="radio" class="star star-min" id="1stars" name="rating" value="1" required/><label class="star star-min" for="1stars" title="Very bad - 1 star"></label>
               <input type="radio" class="star" id="2stars" name="rating" value="2" /><label class="star" for="2stars" title="Bad - 2 stars"></label>
               <input type="radio" class="star" id="3stars" name="rating" value="3" /><label class="star" for="3stars" title="Acceptable - 3 stars"></label>
               <input type="radio" class="star" id="4stars" name="rating" value="4" /><label class="star" for="4stars" title="Very good - 4 stars"></label>
               <input type="radio" class="star star-max" id="5stars" name="rating" value="5" /><label class="star star-max" for="5stars" title="Excellent - 5 stars"></label>
             </fieldset>
           </div>
-          <label for="review_text">Your review</label>
-          <textarea name="review" id="review_text" rows="10" placeholder="Write your review here.." ></textarea>
+          <label for="comments">Your comments</label>
+          <textarea name="review" id="comments" required rows="10" placeholder="Write your review here.." ></textarea>
           <div class="form-row">
             <button type="submit">Submit</button>
           </div>
         </form>
+      <h2>Reviews</h2>
       <ul id="reviews-list"></ul>
     </section>
     <!-- End reviews -->

@@ -55,6 +55,28 @@ document.querySelector('#review-form').addEventListener('submit', event => {
 });
 
 /**
+ * Event listener for the favourites btn
+ */
+document.querySelector('#favoritesBtn').addEventListener('click', event => {
+  const restaurantId = getParameterByName('id');
+  const faved = event.target.dataset.faved === 'true';
+  fetch(`http://localhost:${1337}/restaurants/${restaurantId}/?is_favorite=${!faved}`, {
+    method: 'put',
+  }).then(re => {
+    if(re.statusText === 'OK') {
+      console.log('fave value', re);
+      if (faved) {
+        event.target.innerHTML = 'Add to your faves list';
+      } else {
+        event.target.innerHTML = 'Remove from faves list';
+      }
+      event.target.dataset.faved = !faved;
+    }
+  })
+  .catch(e => console.error('En error occured', e));
+});
+
+/**
  * Refresh restaurant reviews
  */
 loadRestaurantReviews = (restaurantId, callback) => {  
