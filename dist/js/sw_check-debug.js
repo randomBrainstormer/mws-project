@@ -6,7 +6,12 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service_worker.js').then(function(registration) {
       // Registration was successful
       console.log('ServiceWorker registration successful with scope: ', registration.scope);
-    }, function(err) {
+      return registration.sync.getTags();
+    }).then(function(tags) {
+      if (tags.includes('syncReviews')) {
+        console.log("There's already a background sync pending");
+      } 
+    }).catch(function(err) {
       // registration failed :(
       console.log('ServiceWorker registration failed: ', err);
     });

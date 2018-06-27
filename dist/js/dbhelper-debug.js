@@ -12,6 +12,7 @@ class DBHelper {
       const res = db.result;
       // const restaurantsStore = 
       res.createObjectStore('restaurants', {keyPath: 'id'});
+      res.createObjectStore('reviews', {keyPath: 'id'});
       // const index = restaurantsStore.createIndex('restaurants-index', ['name.last', 'name.first']);
     };
   }
@@ -24,15 +25,15 @@ class DBHelper {
   }
 
   /**
-   * Update IndexedDB
+   * Update IndexedDB with restaurants info
    */
-  static updateIndexedDb(key, value) {
+  static updateRestaurantsStorage(key, value) {
     const dbRequest = DBHelper.database;
     dbRequest.onsuccess = function() {
       const db = dbRequest.result;
-      const transaction = db.transaction('restaurants','readwrite');
-      const store = transaction.objectStore('restaurants');
-      value.forEach(v => store.add(v));
+      const transaction = db.transaction(key,'readwrite');
+      const store = transaction.objectStore(key);
+      value.forEach(v => store.put(v));
     }
     dbRequest.onerror = function(event) {
       // Handle errors!
@@ -40,6 +41,43 @@ class DBHelper {
     };    
   }
 
+   /**
+   * Add review to IndexedDB
+   */
+  static addReviewToIndexedDB(data) {
+    const dbRequest = DBHelper.database;
+    dbRequest.onsuccess = function() {
+      const db = dbRequest.result;
+      const transaction = db.transaction('reviews','readwrite');
+      const store = transaction.objectStore('reviews');
+      store.add(data);
+    }
+    dbRequest.onerror = function(event) {
+      // Handle errors!
+      console.error('We couldn\'t fetch anything!');
+    }; 
+  }
+
+  /**
+   * Get reviews with "needs_sync" id
+   */
+  static getUnsyncReviews(callback) {
+    const dbRequest = DBHelper.database;
+    dbRequest.onsuccess = function() {
+      const db = dbRequest.result;
+      const transaction = db.transaction('reviews','readwrite');
+      const store = transaction.objectStore('reviews');
+      const reviewsRequest =  store.get('needs_sync');
+
+      reviewsRequest.onsuccess = function() {
+        callback(reviewsRequest.result); // callback 
+      }
+    }
+    dbRequest.onerror = function(event) {
+      // Handle errors!
+      console.error('We couldn\'t fetch anything!');
+    };
+  }
   /**
    * Fetch from IndexedDB
    */
@@ -67,21 +105,46 @@ class DBHelper {
    */
   static get DATABASE_URL() {
     const port = 1337 // Change this to your server port
-    return `http://localhost:${port}/restaurants`;
+    return `http://localhost:${port}`;
+  }
+
+  static get RESTAURANTS_URL() {
+    return DBHelper.DATABASE_URL + '/restaurants';
+  }
+
+  static get REVIEWS_URL() {
+    return DBHelper.DATABASE_URL + '/reviews/?restaurant_id=';
   }
 
   /**
    * Fetch all restaurants.
    */
   static fetchRestaurants(callback) {
-    fetch(DBHelper.DATABASE_URL)
+    fetch(DBHelper.RESTAURANTS_URL)
     .then(response => response.json())
     .then(restaurants => {
-      DBHelper.updateIndexedDb('restaurants', restaurants);
+      DBHelper.updateRestaurantsStorage('restaurants', restaurants);
       callback(null, restaurants);
     })
     .catch(err => {
-      console.error('Oops!. Got an error from server. Fetching saved data only.')
+      console.error('Oops!. Got an error from server.', err, '. Fetching saved data only.')
+      DBHelper.readFromIndexedDb((res) => callback(null, res));
+    });
+  }
+
+  /**
+   * Fetch all reviews from a restaurant.
+   */
+  static fetchRestaurantReviews(restaurantId, callback) {
+    // DBHelper.readFromIndexedDb((res) => callback(null, res));
+    fetch(DBHelper.REVIEWS_URL + restaurantId)
+    .then(response => response.json())
+    .then(reviews => {
+      DBHelper.updateRestaurantsStorage('reviews', reviews);
+      callback(null, reviews);
+    })
+    .catch(err => {
+      console.error('Oops!. Got an error from server.', err, '. Fetching saved data only.')
       DBHelper.readFromIndexedDb((res) => callback(null, res));
     });
   }

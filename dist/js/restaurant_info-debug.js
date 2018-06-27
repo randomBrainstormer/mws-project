@@ -21,6 +21,72 @@ window.initMap = () => {
 }
 
 /**
+ * Event listener for the form submission.
+ */
+document.querySelector('#review-form').addEventListener('submit', event => {
+  event.preventDefault();
+  const restaurant_id = getParameterByName('id'); 
+  const form = new FormData(event.target);
+  const data = {
+    id: 'needs_sync',
+    restaurant_id,
+    name: form.get('name'),
+    rating: form.get('rating'),
+    comments: form.get('comments'),
+  }
+  
+  // event to put the data into IndexedDB. 
+  DBHelper.addReviewToIndexedDB(data);
+
+   // request a one-off sync:
+  navigator.serviceWorker.ready.then(function(swRegistration) {
+    console.log('syncReviews registered');
+    return swRegistration.sync.register('syncReviews');
+  });
+
+  // clear values
+  event.target.reset();
+
+  // reload the reviews from server
+  loadRestaurantReviews(restaurant_id, (error, reviews) => {
+    console.log('reviews', reviews);
+    if (!error) { 
+      self.restaurant.reviews = reviews;
+    }
+  });
+});
+
+/**
+ * Event listener for the favourites btn
+ */
+document.querySelector('#favoritesBtn').addEventListener('click', event => {
+  const restaurantId = getParameterByName('id');
+  const faved = event.target.dataset.faved === 'true';
+  fetch(`http://localhost:${1337}/restaurants/${restaurantId}/?is_favorite=${!faved}`, {
+    method: 'put',
+  }).then(re => {
+    if(re.statusText === 'OK') {
+      console.log('fave value', re);
+      if (faved) {
+        event.target.innerHTML = 'Add to your faves list';
+      } else {
+        event.target.innerHTML = 'Remove from faves list';
+      }
+      event.target.dataset.faved = !faved;
+    }
+  })
+  .catch(e => console.error('En error occured', e));
+});
+
+/**
+ * Refresh restaurant reviews
+ */
+loadRestaurantReviews = (restaurantId, callback) => {
+  console.log('attempting to load reviews from server');
+  DBHelper.fetchRestaurantReviews(restaurantId, callback)
+}
+
+/**
  * Get current restaurant from page URL.
  */
 fetchRestaurantFromURL = (callback) => {
@@ -33,6 +99,7 @@ fetchRestaurantFromURL = (callback) => {
     error = 'No restaurant id in URL'
     callback(error, null);
   } else {
+    // loadRestaurantReviews(id, callback);
     DBHelper.fetchRestaurantById(id, (error, restaurant) => {
       self.restaurant = restaurant;
       if (!restaurant) {
@@ -40,7 +107,7 @@ fetchRestaurantFromURL = (callback) => {
         return;
       }
       fillRestaurantHTML();
-      callback(null, restaurant)
+      callback(null, restaurant);
     });
   }
 }
@@ -96,10 +163,6 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
  */
 fillReviewsHTML = (reviews = self.restaurant.reviews) => {
   const container = document.getElementById('reviews-container');
-  const title = document.createElement('h2');
-  title.innerHTML = 'Reviews';
-  container.appendChild(title);
-
   if (!reviews) {
     const noReviews = document.createElement('p');
     noReviews.innerHTML = 'No reviews yet!';
@@ -107,9 +170,21 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
     return;
   }
   const ul = document.getElementById('reviews-list');
+  ul.innerHTML = '';
+
+  loadRestaurantReviews(self.restaurant.id, (error, reviews) => {
+    if (!error) { 
+      reviews.reverse();
+      reviews.forEach(review => {
+        ul.appendChild(createReviewHTML(review));
+      });
+    }
+  });
+
   reviews.forEach(review => {
     ul.appendChild(createReviewHTML(review));
   });
+
   container.appendChild(ul);
 }
 
@@ -126,7 +201,7 @@ createReviewHTML = (review) => {
   header.appendChild(name);
 
   const date = document.createElement('span');
-  date.innerHTML = review.date;
+  date.innerHTML = review.date || formatDate(review.updatedAt);
   header.appendChild(date);
 
   li.appendChild(header);
@@ -137,10 +212,18 @@ createReviewHTML = (review) => {
   li.appendChild(rating);
 
   const comments = document.createElement('p');
-  comments.innerHTML = review.comments;
+  comments.innerHTML = review.comments || review.review;
   li.appendChild(comments);
 
   return li;
+}
+
+formatDate = (dateStr) => {
+  const date = new Date(dateStr);
+  const month = date.toLocaleDateString('en-us', {month: 'long'});
+  const day = date.getDay();
+  const year = date.getYear();
+  return `${month} ${day}, ${year}`;
 }
 
 /**

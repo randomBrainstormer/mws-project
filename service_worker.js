@@ -134,7 +134,7 @@ function syncReviews() {
       .catch(e => console.error('En error occured', e));
     }
 
-    // delete the entry we just updated.
+    // delete the entry we just updated. Will be updated from the server on next page reload.
     const restaurantDeleteRequest = store.delete('needs_sync'); 
     restaurantDeleteRequest.onsuccess = function () {
       console.log('entry deleted');
