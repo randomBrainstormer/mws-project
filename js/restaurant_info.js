@@ -25,28 +25,30 @@ window.initMap = () => {
  */
 document.querySelector('#review-form').addEventListener('submit', event => {
   event.preventDefault();
+  const restaurant_id = getParameterByName('id'); 
+  const form = new FormData(event.target);
+  const data = {
+    id: 'needs_sync',
+    restaurant_id,
+    name: form.get('name'),
+    rating: form.get('rating'),
+    comments: form.get('comments'),
+  }
+  
+  // event to put the data into IndexedDB. 
+  DBHelper.addReviewToIndexedDB(data);
 
-  const restaurantId = getParameterByName('id');
-
-  const data = new FormData(event.target);
-  data.append('restaurant_id', restaurantId);
-
-  fetch(`http://localhost:${1337}/reviews`, {
-    method: 'post',
-    body: data
-  }).then(re => {
-    if (re.statusText === 'Created') {
-      fillRestaurantHTML(restaurantId);
-    }
-    console.log('the responsoe was', re.statusText); // statusText = "Created"
-  })
-  .catch(e => console.error('En error occured', e));
+   // request a one-off sync:
+  navigator.serviceWorker.ready.then(function(swRegistration) {
+    console.log('syncReviews registered');
+    return swRegistration.sync.register('syncReviews');
+  });
 
   // clear values
   event.target.reset();
 
-  // reload the reviews
-  loadRestaurantReviews(restaurantId, (error, reviews) => {
+  // reload the reviews from server
+  loadRestaurantReviews(restaurant_id, (error, reviews) => {
     console.log('reviews', reviews);
     if (!error) { 
       self.restaurant.reviews = reviews;
@@ -79,7 +81,8 @@ document.querySelector('#favoritesBtn').addEventListener('click', event => {
 /**
  * Refresh restaurant reviews
  */
-loadRestaurantReviews = (restaurantId, callback) => {  
+loadRestaurantReviews = (restaurantId, callback) => {
+  console.log('attempting to load reviews from server');
   DBHelper.fetchRestaurantReviews(restaurantId, callback)
 }
 
