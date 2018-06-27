@@ -99,3 +99,58 @@ self.addEventListener('fetch', function(event) {
     })
   );
 });
+
+self.addEventListener('sync', function(event) {
+  console.log('syncing...', event.tag);
+  if (event.tag == 'syncReviews') {
+    event.waitUntil(self.syncReviews());
+  }
+});
+
+
+function syncReviews() {
+ const dbRequest = self.indexedDB.open('restaurants-db', 1); // OpenDB
+ 
+ dbRequest.onsuccess = function() {
+    const db = dbRequest.result;
+    const transaction = db.transaction('reviews', 'readwrite');
+    const store = transaction.objectStore('reviews');
+    const restaurantsRequest = store.get('needs_sync');
+
+    restaurantsRequest.onsuccess = function() {
+      const data = restaurantsRequest.result;
+      delete data['id'];
+
+      fetch(`http://localhost:${1337}/reviews`, {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        method: 'post',
+        body: JSON.stringify(data)
+      }).then(re => {
+        if (re.statusText === 'Created') console.log('entry created in server', re);
+      })
+      .catch(e => console.error('En error occured', e));
+    }
+
+    // delete the entry we just updated.
+    const restaurantDeleteRequest = store.delete('needs_sync'); 
+    restaurantDeleteRequest.onsuccess = function () {
+      console.log('entry deleted');
+    }
+
+    transaction.oncomplete = function(event) {
+      console.log('transaction completed');
+    };
+
+  }
+  dbRequest.onerror = function(event) {
+    // Handle errors!
+    console.error('We couldn\'t fetch anything!');
+  };
+
+ // I can check if the user is onlien and notify the user.
+  
+
+}
