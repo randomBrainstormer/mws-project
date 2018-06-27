@@ -31,14 +31,31 @@ class DBHelper {
     const dbRequest = DBHelper.database;
     dbRequest.onsuccess = function() {
       const db = dbRequest.result;
-      const transaction = db.transaction('restaurants','readwrite');
-      const store = transaction.objectStore('restaurants');
-      value.forEach(v => store.add(v));
+      const transaction = db.transaction(key,'readwrite');
+      const store = transaction.objectStore(key);
+      value.forEach(v => store.put(v));
     }
     dbRequest.onerror = function(event) {
       // Handle errors!
       console.error('We couldn\'t fetch anything!');
     };    
+  }
+
+   /**
+   * Add review to IndexedDB
+   */
+  static addReviewToIndexedDB(data) {
+    const dbRequest = DBHelper.database;
+    dbRequest.onsuccess = function() {
+      const db = dbRequest.result;
+      const transaction = db.transaction('restaurants','readwrite');
+      const store = transaction.objectStore('restaurants');
+      store.add(data);
+    }
+    dbRequest.onerror = function(event) {
+      // Handle errors!
+      console.error('We couldn\'t fetch anything!');
+    }; 
   }
 
   /**
@@ -75,6 +92,10 @@ class DBHelper {
     return DBHelper.DATABASE_URL + '/restaurants';
   }
 
+  static get REVIEWS_URL() {
+    return DBHelper.DATABASE_URL + '/reviews/?restaurant_id=';
+  }
+
   /**
    * Fetch all restaurants.
    */
@@ -86,7 +107,23 @@ class DBHelper {
       callback(null, restaurants);
     })
     .catch(err => {
-      console.error('Oops!. Got an error from server. Fetching saved data only.')
+      console.error('Oops!. Got an error from server.', err, '. Fetching saved data only.')
+      DBHelper.readFromIndexedDb((res) => callback(null, res));
+    });
+  }
+
+  /**
+   * Fetch all reviews from a restaurant.
+   */
+  static fetchRestaurantReviews(restaurantId, callback) {
+    fetch(DBHelper.REVIEWS_URL + restaurantId)
+    .then(response => response.json())
+    .then(reviews => {
+      DBHelper.updateRestaurantsStorage('reviews', reviews);
+      callback(null, reviews);
+    })
+    .catch(err => {
+      console.error('Oops!. Got an error from server.', err, '. Fetching saved data only.')
       DBHelper.readFromIndexedDb((res) => callback(null, res));
     });
   }
