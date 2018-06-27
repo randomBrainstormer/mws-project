@@ -48,8 +48,8 @@ class DBHelper {
     const dbRequest = DBHelper.database;
     dbRequest.onsuccess = function() {
       const db = dbRequest.result;
-      const transaction = db.transaction('restaurants','readwrite');
-      const store = transaction.objectStore('restaurants');
+      const transaction = db.transaction('reviews','readwrite');
+      const store = transaction.objectStore('reviews');
       store.add(data);
     }
     dbRequest.onerror = function(event) {
@@ -58,6 +58,26 @@ class DBHelper {
     }; 
   }
 
+  /**
+   * Get reviews with "needs_sync" id
+   */
+  static getUnsyncReviews(callback) {
+    const dbRequest = DBHelper.database;
+    dbRequest.onsuccess = function() {
+      const db = dbRequest.result;
+      const transaction = db.transaction('reviews','readwrite');
+      const store = transaction.objectStore('reviews');
+      const reviewsRequest =  store.get('needs_sync');
+
+      reviewsRequest.onsuccess = function() {
+        callback(reviewsRequest.result); // callback 
+      }
+    }
+    dbRequest.onerror = function(event) {
+      // Handle errors!
+      console.error('We couldn\'t fetch anything!');
+    };
+  }
   /**
    * Fetch from IndexedDB
    */
@@ -116,6 +136,7 @@ class DBHelper {
    * Fetch all reviews from a restaurant.
    */
   static fetchRestaurantReviews(restaurantId, callback) {
+    // DBHelper.readFromIndexedDb((res) => callback(null, res));
     fetch(DBHelper.REVIEWS_URL + restaurantId)
     .then(response => response.json())
     .then(reviews => {
