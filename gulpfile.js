@@ -1,5 +1,4 @@
 const gulp = require('gulp');
-const imagemin = require('gulp-imagemin');
 const responsive = require('gulp-responsive');
 const $ = require('gulp-load-plugins')();
 var minify = require('gulp-minify');
