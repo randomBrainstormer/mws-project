@@ -66,15 +66,16 @@ document.querySelector('#favoritesBtn').addEventListener('click', event => {
     method: 'put',
   }).then(re => {
     if(re.statusText === 'OK') {
-      console.log('fave value', re);
       if (faved) {
         event.target.innerHTML = 'Add to your faves list';
       } else {
         event.target.innerHTML = 'Remove from faves list';
       }
       event.target.dataset.faved = !faved;
+      self.restaurant.is_favorite = !faved ? "true" : "false";
     }
   })
+  .then(isFav => DBHelper.updateRestaurantInfo(self.restaurant))
   .catch(e => console.error('En error occured', e));
 });
 
@@ -126,6 +127,11 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   image.className = 'restaurant-img'
   image.alt = "restaurant image";
   image.src = DBHelper.imageUrlForRestaurant(restaurant);
+
+  const faveBtn = document.getElementById('favoritesBtn');
+  const isFaved = self.restaurant.is_favorite === 'true';
+  faveBtn.innerHTML = isFaved ? 'Remove from faves list' : 'Add to your faves list' ;
+  faveBtn.dataset.faved = isFaved
 
   const cuisine = document.getElementById('restaurant-cuisine');
   cuisine.innerHTML = restaurant.cuisine_type;

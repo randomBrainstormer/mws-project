@@ -41,6 +41,23 @@ class DBHelper {
     };    
   }
 
+  /**
+   * Update the is_favourite status of a restaurant on IndexedDB
+   */
+  static updateRestaurantInfo(value) {
+    const dbRequest = DBHelper.database;
+    dbRequest.onsuccess = function() {
+      const db = dbRequest.result;
+      const transaction = db.transaction('restaurants','readwrite');
+      const store = transaction.objectStore('restaurants');
+      store.put(value);
+    }
+    dbRequest.onerror = function(event) {
+      // Handle errors!
+      console.error('We couldn\'t fetch anything!');
+    };  
+  }
+
    /**
    * Add review to IndexedDB
    */
