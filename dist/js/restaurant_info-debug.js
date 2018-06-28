@@ -2,23 +2,35 @@ let restaurant;
 var map;
 
 /**
- * Initialize Google map, called from HTML.
+ * Hide static map and initialize Google map
  */
-window.initMap = () => {
+const swap_map = () => {
+  if (document.getElementById('static_map').style.display !== 'none') {        
+    document.getElementById('static_map').style.display = 'none';
+  }
+
+  self.map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 16,
+    center: self.restaurant.latlng,
+    scrollwheel: false
+  });
+
+  DBHelper.mapMarkerForRestaurant(self.restaurant, self.map);
+}
+
+document.addEventListener('DOMContentLoaded', (event) => {
   fetchRestaurantFromURL((error, restaurant) => {
     if (error) { // Got an error!
       console.error(error);
     } else {
-      self.map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 16,
-        center: restaurant.latlng,
-        scrollwheel: false
-      });
-      fillBreadcrumb();
-      DBHelper.mapMarkerForRestaurant(self.restaurant, self.map);
+      document.querySelector('#map').innerHTML = `
+      <img id="static_map" onclick="swap_map()" alt="Google maps image with restaurants" src="https://maps.googleapis.com/maps/api/staticmap?center=${restaurant.latlng.lat},${restaurant.latlng.lng}&zoom=16&size=640x640&maptype=roadmap
+      &markers=color:red%7C${restaurant.latlng.lat},${restaurant.latlng.lng}
+      &key=AIzaSyBDWVakzxJSRtpMhMzaX8tt9b2vHc38cpE"></img>
+      `;
     }
-  });
-}
+  });  
+});
 
 /**
  * Event listener for the form submission.
@@ -66,15 +78,16 @@ document.querySelector('#favoritesBtn').addEventListener('click', event => {
     method: 'put',
   }).then(re => {
     if(re.statusText === 'OK') {
-      console.log('fave value', re);
       if (faved) {
         event.target.innerHTML = 'Add to your faves list';
       } else {
         event.target.innerHTML = 'Remove from faves list';
       }
       event.target.dataset.faved = !faved;
+      self.restaurant.is_favorite = !faved ? "true" : "false";
     }
   })
+  .then(isFav => DBHelper.updateRestaurantInfo(self.restaurant))
   .catch(e => console.error('En error occured', e));
 });
 
@@ -99,7 +112,6 @@ fetchRestaurantFromURL = (callback) => {
     error = 'No restaurant id in URL'
     callback(error, null);
   } else {
-    // loadRestaurantReviews(id, callback);
     DBHelper.fetchRestaurantById(id, (error, restaurant) => {
       self.restaurant = restaurant;
       if (!restaurant) {
@@ -126,6 +138,11 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   image.className = 'restaurant-img'
   image.alt = "restaurant image";
   image.src = DBHelper.imageUrlForRestaurant(restaurant);
+
+  const faveBtn = document.getElementById('favoritesBtn');
+  const isFaved = self.restaurant.is_favorite === 'true';
+  faveBtn.innerHTML = isFaved ? 'Remove from faves list' : 'Add to your faves list' ;
+  faveBtn.dataset.faved = isFaved
 
   const cuisine = document.getElementById('restaurant-cuisine');
   cuisine.innerHTML = restaurant.cuisine_type;
