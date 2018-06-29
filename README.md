@@ -6,7 +6,7 @@
 
 1. `npm install`
 2. `gulp build`
-3. for the frontend server use  `python server.py` this will run the python server with the right cache policies. If it fails you can use `python -m SimpleHTTPServer`, but consider this wont have the right cache and compression policies. 
+3. for the frontend server use  `python server.py` this will run the python server with the right cache policies. This is tested with Python2,  if you find any problems with Python3 such as installing libraries then simply use `python -m SimpleHTTPServer`. 
 4. for the backend server use  `npm start`
 
 # SOME DOCUMENTATION FROM THE ORIGINAL REPO, INDICATING SOME OF THE STEPS IN THE FINAL STAGE OF THE ASSIGNMENT:
