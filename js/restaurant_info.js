@@ -43,7 +43,7 @@ if (reviewForm) {
       console.log('syncReviews registered');
       return swRegistration.sync.register('syncReviews');
     });
-  
+
     // clear values
     event.target.reset();
   
@@ -172,27 +172,39 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
  */
 fillReviewsHTML = (reviews = self.restaurant.reviews) => {
   const container = document.getElementById('reviews-container');
-  if (!reviews) {
+  let reviewsExist = true; 
+  const ul = document.getElementById('reviews-list');
+  ul.innerHTML = '';
+
+  // fetch reviews from server/indexedDB
+  loadRestaurantReviews(self.restaurant.id, (error, reviews) => {
+    if (!error) { 
+      if (reviews) {
+        reviews.reverse();
+        reviews.forEach(review => {
+          ul.appendChild(createReviewHTML(review));
+        });
+      } else {
+        reviewsExist = false;
+      }
+    }
+  });
+
+  // if there arent default reviews, and the fetch from server returned nothing,
+  // then add a No reviews yet notification
+  if (!reviews && !reviewsExist) {
     const noReviews = document.createElement('p');
     noReviews.innerHTML = 'No reviews yet!';
     container.appendChild(noReviews);
     return;
   }
-  const ul = document.getElementById('reviews-list');
-  ul.innerHTML = '';
-
-  loadRestaurantReviews(self.restaurant.id, (error, reviews) => {
-    if (!error) { 
-      reviews.reverse();
-      reviews.forEach(review => {
-        ul.appendChild(createReviewHTML(review));
-      });
-    }
-  });
-
-  reviews.forEach(review => {
-    ul.appendChild(createReviewHTML(review));
-  });
+  
+  // add default reviews
+  if(reviews) {
+    reviews.forEach(review => {
+      ul.appendChild(createReviewHTML(review));
+    });
+  }
 
   container.appendChild(ul);
 }
