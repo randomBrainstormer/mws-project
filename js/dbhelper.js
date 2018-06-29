@@ -3,9 +3,13 @@
  */
 class DBHelper {
 
+  static get dbVersion() {
+    return 3;
+  }
+
   static setupIndexedDB() {
     // Open (or create) the database
-    const db = window.indexedDB.open('restaurants-db', 3);
+    const db = window.indexedDB.open('restaurants-db', DBHelper.dbVersion);
 
     // Create the schema
     db.onupgradeneeded = function() {
@@ -21,7 +25,7 @@ class DBHelper {
    * IndexedDB Open.
    */
   static get database() {
-    return window.indexedDB.open('restaurants-db', 1);
+    return window.indexedDB.open('restaurants-db', DBHelper.dbVersion);
   }
 
   /**
