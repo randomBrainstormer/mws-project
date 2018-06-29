@@ -19,6 +19,8 @@ const swap_map = () => {
 }
 
 document.addEventListener('DOMContentLoaded', (event) => {
+  DBHelper.setupIndexedDB();
+  
   fetchRestaurantFromURL((error, restaurant) => {
     if (error) { // Got an error!
       console.error(error);

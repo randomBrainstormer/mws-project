@@ -5,7 +5,7 @@ class DBHelper {
 
   static setupIndexedDB() {
     // Open (or create) the database
-    const db = window.indexedDB.open('restaurants-db', 1);
+    const db = window.indexedDB.open('restaurants-db', 3);
 
     // Create the schema
     db.onupgradeneeded = function() {
