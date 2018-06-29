@@ -34,25 +34,39 @@ if (reviewForm) {
       rating: form.get('rating'),
       comments: form.get('comments'),
     }
-    
-    // event to put the data into IndexedDB. 
-    DBHelper.addReviewToIndexedDB(data);
-  
-     // request a one-off sync:
-    navigator.serviceWorker.ready.then(function(swRegistration) {
-      console.log('syncReviews registered');
-      return swRegistration.sync.register('syncReviews');
-    });
 
     // clear values
     event.target.reset();
-  
-    // reload the reviews from server
-    loadRestaurantReviews(restaurant_id, (error, reviews) => {
-      console.log('reviews', reviews);
-      if (!error) { 
-        self.restaurant.reviews = reviews;
+
+    fetch(`http://localhost:${1337}/reviews`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      method: 'post',
+      body: JSON.stringify(data)
+    }).then(re => {
+      if (re.statusText === 'Created') {
+        // reload the reviews from server
+        loadRestaurantReviews(restaurant_id, (error, reviews) => {
+          if (!error) { 
+            self.restaurant.reviews = reviews;
+            return;
+          }
+        });
       }
+    })
+    .then(() => {
+      fillReviewsHTML();
+    })
+    .catch(error => {
+      DBHelper.addReviewToIndexedDB(data);
+      // request a one-off sync:
+      navigator.serviceWorker.ready.then(function(swRegistration) {
+        console.log('syncReviews registered');
+        return swRegistration.sync.register('syncReviews');
+      });
+      console.error('Error, sending request to service worker for later update...');
     });
   });
 }
@@ -185,26 +199,13 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
           ul.appendChild(createReviewHTML(review));
         });
       } else {
-        reviewsExist = false;
+        const noReviews = document.createElement('p');
+        noReviews.innerHTML = 'No reviews yet!';
+        container.appendChild(noReviews);
+        return;
       }
     }
   });
-
-  // if there arent default reviews, and the fetch from server returned nothing,
-  // then add a No reviews yet notification
-  if (!reviews && !reviewsExist) {
-    const noReviews = document.createElement('p');
-    noReviews.innerHTML = 'No reviews yet!';
-    container.appendChild(noReviews);
-    return;
-  }
-  
-  // add default reviews
-  if(reviews) {
-    reviews.forEach(review => {
-      ul.appendChild(createReviewHTML(review));
-    });
-  }
 
   container.appendChild(ul);
 }
