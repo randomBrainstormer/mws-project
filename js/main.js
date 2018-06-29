@@ -40,9 +40,24 @@ const observer = new IntersectionObserver(observerCallback, {
  */
 document.addEventListener('DOMContentLoaded', (event) => {
   initLocalStorage();
-  fetchNeighborhoods();
-  fetchCuisines();
-  updateRestaurants();
+  const isRestaurantsPage = window.location.href.indexOf('/restaurant.html') > -1;
+  if(isRestaurantsPage) {
+    fetchRestaurantFromURL((error, restaurant) => {
+      if (error) { // Got an error!
+        console.error(error);
+      } else {
+        document.querySelector('#map').innerHTML = `
+        <img id="static_map" onclick="swap_restaurant_map()" alt="Google maps image with restaurants" src="https://maps.googleapis.com/maps/api/staticmap?center=${restaurant.latlng.lat},${restaurant.latlng.lng}&zoom=16&size=640x640&maptype=roadmap
+        &markers=color:red%7C${restaurant.latlng.lat},${restaurant.latlng.lng}
+        &key=AIzaSyBDWVakzxJSRtpMhMzaX8tt9b2vHc38cpE"></img>
+        `;
+      }
+    });
+  } else {
+    fetchNeighborhoods();
+    fetchCuisines();
+    updateRestaurants();
+  }
 });
 
 window.addEventListener('load', (event) => {
@@ -129,22 +144,6 @@ fillCuisinesHTML = (cuisines = self.cuisines) => {
     option.value = cuisine;
     select.append(option);
   });
-}
-
-/**
- * Initialize Google map, called from HTML.
- */
-window.initMap = () => {
-  let loc = {
-    lat: 40.722216,
-    lng: -73.987501
-  };
-  self.map = new google.maps.Map(document.getElementById('map'), {
-    zoom: 12,
-    center: loc,
-    scrollwheel: false
-  });
-  updateRestaurants();
 }
 
 /**

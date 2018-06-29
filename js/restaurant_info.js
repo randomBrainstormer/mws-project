@@ -4,7 +4,7 @@ var map;
 /**
  * Hide static map and initialize Google map
  */
-const swap_map = () => {
+const swap_restaurant_map = () => {
   if (document.getElementById('static_map').style.display !== 'none') {        
     document.getElementById('static_map').style.display = 'none';
   }
@@ -18,80 +18,70 @@ const swap_map = () => {
   DBHelper.mapMarkerForRestaurant(self.restaurant, self.map);
 }
 
-document.addEventListener('DOMContentLoaded', (event) => {
-  DBHelper.setupIndexedDB();
-  
-  fetchRestaurantFromURL((error, restaurant) => {
-    if (error) { // Got an error!
-      console.error(error);
-    } else {
-      document.querySelector('#map').innerHTML = `
-      <img id="static_map" onclick="swap_map()" alt="Google maps image with restaurants" src="https://maps.googleapis.com/maps/api/staticmap?center=${restaurant.latlng.lat},${restaurant.latlng.lng}&zoom=16&size=640x640&maptype=roadmap
-      &markers=color:red%7C${restaurant.latlng.lat},${restaurant.latlng.lng}
-      &key=AIzaSyBDWVakzxJSRtpMhMzaX8tt9b2vHc38cpE"></img>
-      `;
-    }
-  });  
-});
-
 /**
  * Event listener for the form submission.
  */
-document.querySelector('#review-form').addEventListener('submit', event => {
-  event.preventDefault();
-  const restaurant_id = getParameterByName('id'); 
-  const form = new FormData(event.target);
-  const data = {
-    id: 'needs_sync',
-    restaurant_id,
-    name: form.get('name'),
-    rating: form.get('rating'),
-    comments: form.get('comments'),
-  }
-  
-  // event to put the data into IndexedDB. 
-  DBHelper.addReviewToIndexedDB(data);
-
-   // request a one-off sync:
-  navigator.serviceWorker.ready.then(function(swRegistration) {
-    console.log('syncReviews registered');
-    return swRegistration.sync.register('syncReviews');
-  });
-
-  // clear values
-  event.target.reset();
-
-  // reload the reviews from server
-  loadRestaurantReviews(restaurant_id, (error, reviews) => {
-    console.log('reviews', reviews);
-    if (!error) { 
-      self.restaurant.reviews = reviews;
+const reviewForm = document.querySelector('#review-form');
+if (reviewForm) {
+  reviewForm.addEventListener('submit', event => {
+    event.preventDefault();
+    const restaurant_id = getParameterByName('id'); 
+    const form = new FormData(event.target);
+    const data = {
+      id: 'needs_sync',
+      restaurant_id,
+      name: form.get('name'),
+      rating: form.get('rating'),
+      comments: form.get('comments'),
     }
+    
+    // event to put the data into IndexedDB. 
+    DBHelper.addReviewToIndexedDB(data);
+  
+     // request a one-off sync:
+    navigator.serviceWorker.ready.then(function(swRegistration) {
+      console.log('syncReviews registered');
+      return swRegistration.sync.register('syncReviews');
+    });
+  
+    // clear values
+    event.target.reset();
+  
+    // reload the reviews from server
+    loadRestaurantReviews(restaurant_id, (error, reviews) => {
+      console.log('reviews', reviews);
+      if (!error) { 
+        self.restaurant.reviews = reviews;
+      }
+    });
   });
-});
+}
 
 /**
  * Event listener for the favourites btn
  */
-document.querySelector('#favoritesBtn').addEventListener('click', event => {
-  const restaurantId = getParameterByName('id');
-  const faved = event.target.dataset.faved === 'true';
-  fetch(`http://localhost:${1337}/restaurants/${restaurantId}/?is_favorite=${!faved}`, {
-    method: 'put',
-  }).then(re => {
-    if(re.statusText === 'OK') {
-      if (faved) {
-        event.target.innerHTML = 'Add to your faves list';
-      } else {
-        event.target.innerHTML = 'Remove from faves list';
+const favBtn = document.querySelector('#favoritesBtn');
+if (favBtn) {
+  favBtn.addEventListener('click', event => {
+    const restaurantId = getParameterByName('id');
+    const faved = event.target.dataset.faved === 'true';
+    fetch(`http://localhost:${1337}/restaurants/${restaurantId}/?is_favorite=${!faved}`, {
+      method: 'put',
+    }).then(re => {
+      if(re.statusText === 'OK') {
+        if (faved) {
+          event.target.innerHTML = 'Add to your faves list';
+        } else {
+          event.target.innerHTML = 'Remove from faves list';
+        }
+        event.target.dataset.faved = !faved;
+        self.restaurant.is_favorite = !faved ? "true" : "false";
       }
-      event.target.dataset.faved = !faved;
-      self.restaurant.is_favorite = !faved ? "true" : "false";
-    }
-  })
-  .then(isFav => DBHelper.updateRestaurantInfo(self.restaurant))
-  .catch(e => console.error('En error occured', e));
-});
+    })
+    .then(isFav => DBHelper.updateRestaurantInfo(self.restaurant))
+    .catch(e => console.error('En error occured', e));
+  });
+}
 
 /**
  * Refresh restaurant reviews
