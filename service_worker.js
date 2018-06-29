@@ -109,7 +109,7 @@ self.addEventListener('sync', function(event) {
 
 
 function syncReviews() {
- const dbRequest = self.indexedDB.open('restaurants-db', 1); // OpenDB
+ const dbRequest = self.indexedDB.open('restaurants-db', 3); // OpenDB
  
  dbRequest.onsuccess = function() {
     const db = dbRequest.result;
