@@ -75,5 +75,7 @@ gulp.task('watch', function(){
   gulp.watch('img/*.jpg', ['responsiveImg']);
 });
 
-gulp.task('default', ['responsiveImg', 'compressJs', 'watch']);
+gulp.task('build', ['responsiveImg', 'compressJs']);
+
+gulp.task('default', ['build', 'watch']);
 
