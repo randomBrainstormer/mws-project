@@ -1,7 +1,7 @@
 const gulp = require('gulp');
 const responsive = require('gulp-responsive');
 const $ = require('gulp-load-plugins')();
-var minify = require('gulp-minify');
+const minify = require('gulp-minify');
 
 gulp.task('compressJs', function() {
   gulp.src('js/*.js')
