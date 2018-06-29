@@ -2,9 +2,18 @@ const gulp = require('gulp');
 const responsive = require('gulp-responsive');
 const $ = require('gulp-load-plugins')();
 const minify = require('gulp-minify');
+const concat = require('gulp-concat');
 
+const jsFiles = [
+  'js/dbhelper.js',
+  'js/sw_check.js',
+  'js/main.js',
+  'js/restaurant_info.js'
+]
 gulp.task('compressJs', function() {
-  gulp.src('js/*.js')
+  return gulp.src(jsFiles)
+    .pipe(concat('scripts.js'))
+    .pipe(gulp.dest('dist/js'))
     .pipe(minify({
         ext:{
             src:'-debug.js',
