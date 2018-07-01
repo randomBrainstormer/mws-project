@@ -101,7 +101,6 @@ if (favBtn) {
  * Refresh restaurant reviews
  */
 loadRestaurantReviews = (restaurantId, callback) => {
-  console.log('attempting to load reviews from server');
   DBHelper.fetchRestaurantReviews(restaurantId, callback)
 }
 
